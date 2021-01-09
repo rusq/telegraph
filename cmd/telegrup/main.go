@@ -35,9 +35,9 @@ func init() {
 }
 
 type result struct {
-	n    int
-	path string
-	err  error
+	Num  int    `json:"num"`
+	Path string `json:"path,omitempty"`
+	Err  error  `json:"error,omitempty"`
 }
 
 func main() {
@@ -106,7 +106,7 @@ func uploadBunch(files []string, skip bool, timeout time.Duration) ([]result, er
 			}
 			log.Print("SKIPPED: " + msg)
 		}
-		results = append(results, result{n: i, path: remotePath, err: err})
+		results = append(results, result{Num: i, Path: remotePath, Err: err})
 	}
 	return results, nil
 }
@@ -137,20 +137,23 @@ func uploadOne(filename string, timeout time.Duration) (string, error) {
 }
 
 // printResults prints the results to writer.
+//
+// BUG(rusq): json output won't print errors with unexported fields, such as
+// constructed with errors.New.
 func printResults(w io.Writer, results []result, asJson bool) error {
 	if asJson {
 		enc := json.NewEncoder(w)
-		enc.SetIndent("", "  ")
-		return enc.Encode(&results)
+
+		return enc.Encode(results)
 	}
 	for _, res := range results {
-		if res.err != nil {
-			if _, err := fmt.Fprintf(w, "%2d: ERROR: %s", res.n, res.err); err != nil {
+		if res.Err != nil {
+			if _, err := fmt.Fprintf(w, "%2d: ERROR: %s", res.Num, res.Err); err != nil {
 				return err
 			}
 			continue
 		}
-		if _, err := fmt.Fprintf(w, "%2d: OK: %s%s\n", res.n, telegraph.BaseURL, res.path); err != nil {
+		if _, err := fmt.Fprintf(w, "%2d: OK: %s%s\n", res.Num, telegraph.BaseURL, res.Path); err != nil {
 			return err
 		}
 	}
