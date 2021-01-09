@@ -5,6 +5,34 @@
 This Go package provides some basic functions to interact with
 [Telegraph](https://telegra.ph).
 
+## Example
+
+```go
+package main
+
+import (
+    "log"
+    "os"
+
+    "github.com/rusq/telegraph"
+)
+
+func main() {
+    f, err := os.Open("cat_pic.jpg")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer f.Close()
+
+    result, err := telegraph.Upload(context.Background(), f)
+    if err != nil {
+        log.Fatal("oh, man :(")
+    }
+
+    log.Printf("%v", result)
+}
+```
+
 ## Crippled?
 The inquisitive reader might enquire:  "Why Crippled?"
 

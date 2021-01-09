@@ -1,3 +1,4 @@
+// Package telegraph provides some functions to interface with APIs of telegra.ph.
 package telegraph
 
 import (

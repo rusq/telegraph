@@ -1,3 +1,5 @@
+// Command telegrup is the command line telegra.ph file uploader.
+// Run with `-h` to get some help.
 package main
 
 import (
