@@ -5,6 +5,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -23,6 +24,7 @@ var (
 	skip    = flag.Bool("s", false, "skip failed uploads")
 	quiet   = flag.Bool("q", false, "be quiet (errors are printed anyway)")
 	timeout = flag.Duration("t", 60*time.Second, "single file upload `timeout`")
+	js      = flag.Bool("json", false, "results as json")
 )
 
 func init() {
@@ -47,7 +49,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	results, err := uploadBunch(files, *skip)
+	results, err := uploadBunch(files, *skip, *timeout)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,7 +57,9 @@ func main() {
 		return
 	} else {
 		// output results
-		printResults(os.Stdout, results)
+		if err := printResults(os.Stdout, results, *js); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -90,11 +94,11 @@ func getFileList(files []string, listfile string) ([]string, error) {
 }
 
 // uploadBunch uploads a bunch of files, returning results.
-func uploadBunch(files []string, skip bool) ([]result, error) {
+func uploadBunch(files []string, skip bool, timeout time.Duration) ([]result, error) {
 	var results = make([]result, 0, len(files))
 
 	for i, filename := range files {
-		remotePath, err := uploadOne(filename, *timeout)
+		remotePath, err := uploadOne(filename, timeout)
 		if err != nil {
 			msg := fmt.Sprintf("error uploading file %d: %s : %s", i+1, filename, err)
 			if !skip {
@@ -133,12 +137,22 @@ func uploadOne(filename string, timeout time.Duration) (string, error) {
 }
 
 // printResults prints the results to writer.
-func printResults(w io.Writer, results []result) {
+func printResults(w io.Writer, results []result, asJson bool) error {
+	if asJson {
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		return enc.Encode(&results)
+	}
 	for _, res := range results {
 		if res.err != nil {
-			fmt.Fprintf(w, "%2d: ERROR: %s", res.n, res.err)
+			if _, err := fmt.Fprintf(w, "%2d: ERROR: %s", res.n, res.err); err != nil {
+				return err
+			}
 			continue
 		}
-		fmt.Fprintf(w, "%2d: OK: %s%s\n", res.n, telegraph.BaseURL, res.path)
+		if _, err := fmt.Fprintf(w, "%2d: OK: %s%s\n", res.n, telegraph.BaseURL, res.path); err != nil {
+			return err
+		}
 	}
+	return nil
 }
