@@ -1,5 +1,7 @@
 # Crippled Telegraph Library for Go
 
+[![Build Status](https://travis-ci.com/rusq/telegraph.svg?branch=master)](https://travis-ci.com/rusq/telegraph)
+
 ![COME GET IT](./come_get_it.jpg)
 
 This Go package provides some basic functions to interact with
@@ -34,7 +36,7 @@ func main() {
 ```
 
 ## Crippled?
-The inquisitive reader might enquire:  "Why Crippled?"
+An inquisitive reader might enquire:  "Why Crippled?"
 
 Well, it's rude to leave questions unanswered, so I'll respond:
 "Because currently, it only supports the methods listed below".
